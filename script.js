@@ -133,23 +133,19 @@ function createVisualization(data) {
     const yearPlayers = data.filter(d => d.year === year);
 
     // Calculate the minimum and maximum values for Swing % and Batting AVG
-    const swingPercentMin = d3.min(yearPlayers, d => d.swing_percent);
-    const swingPercentMax = d3.max(yearPlayers, d => d.swing_percent);
-    const battingAvgMin = d3.min(yearPlayers, d => d.batting_avg);
-    const battingAvgMax = d3.max(yearPlayers, d => d.batting_avg);
+    const swingPercentExtent = d3.extent(yearPlayers, d => d.swing_percent);
+    const battingAvgExtent = d3.extent(yearPlayers, d => d.batting_avg);
 
-    // Add some space to the domain using a buffer
-    const swingBuffer = 3;
-    const battingBuffer = 0.01;
-
-    // Create the X and Y scales for Swing % and Batting AVG with buffer
+    // Create the X and Y scales for Swing % and Batting AVG
     const xScale = d3.scaleLinear()
-      .domain([Math.max(0, swingPercentMin - swingBuffer), swingPercentMax + swingBuffer])
-      .range([0, width]);
+      .domain(swingPercentExtent)
+      .range([0, width])
+      .nice();
 
     const yScale = d3.scaleLinear()
-      .domain([Math.max(0, battingAvgMin - battingBuffer), battingAvgMax + battingBuffer])
-      .range([height, 0]);
+      .domain(battingAvgExtent)
+      .range([height, 0])
+      .nice();
 
     // Create and display the X-axis for Swing %
     const xAxis = d3.axisBottom(xScale).ticks(6);
