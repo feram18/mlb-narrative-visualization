@@ -1,5 +1,5 @@
 # Narrative Visualization of MLB Batting Performance
-> UIUC | CS 416 - Data Visualization
+> University of Illinois Urbana-Champaign | CS 416 - Data Visualization
 
 ## Messaging
 This narrative visualization's purpose is to offer a perceptive examination of Major League Baseball's (MLB) batting statistics ranging from 2015 to 2023. It intends to display the average 'batting average (AVG)' among qualified batters per year in the overview scene, let users dive down into certain years to see the correlation between players' swing percentage and batting AVG, and provide a more in-depth analysis of the performance of specific players.
