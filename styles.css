@@ -1,12 +1,84 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
 body {
     font-family: 'Roboto', sans-serif;
-}
+} */
 
 #visualization {
     width: max-content;
     height: max-content;
     padding: 20px;
     margin: 0 auto;
+}
+
+.bar {
+    cursor: pointer;
+}
+
+.bar-label {
+    font-size: 12px;
+    text-anchor: middle;
+    fill: #333;
+}
+
+.point {
+    stroke: #fff;
+    stroke-width: 2;
+    cursor: pointer;
+    pointer-events: visiblePainted;
+}
+
+.individual-bar-label {
+    font-size: 12px;
+    text-anchor: middle;
+    fill: #fff;
+}
+
+.axis-label {
+    font-size: 14px;
+}
+
+.chart-title {
+    font-size: 20px;
+    font-weight: bold;
+    text-anchor: middle;
+}
+
+.back-button rect {
+    fill: #f0f0f0;
+}
+
+.back-button text {
+    font-size: 12px;
+    fill: #333;
+    pointer-events: none;
+}
+
+.annotation-group {
+    pointer-events: none;
+}
+
+.annotation-note-title {
+    font-size: 14px;
+    font-weight: bold;
+    fill: #333;
+}
+
+.annotation-note-label {
+    font-size: 12px;
+    fill: #333;
+}
+
+.tooltip {
+    position: absolute;
+    background-color: #f9f9f9;
+    padding: 8px;
+    border: 1px solid #ccc;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.back-button:hover rect {
+    fill: #ddd;
 }
