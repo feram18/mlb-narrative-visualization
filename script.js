@@ -18,18 +18,28 @@ fetch(dataURL)
   });
 
 function createVisualization(data) {
+  const svgHeightPercentage = 0.6;
+
+  const viewHeight = window.innerHeight;
+
   const margin = {
     top: 70,
     right: 50,
     bottom: 80,
     left: 70
   };
-  const width = 800 - margin.left - margin.right;
-  const height = 500 - margin.top - margin.bottom;
+
+  const containerWidth = document.getElementById("visualization").offsetWidth;
+
+  const svgWidth = containerWidth - containerWidth * 0.30;
+  const svgHeight = viewHeight * svgHeightPercentage;
+
+  const width = svgWidth - margin.left - margin.right;
+  const height = svgHeight - margin.top - margin.bottom;
 
   const svg = d3.select("#visualization").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
+    .attr("width", svgWidth)
+    .attr("height", svgHeight)
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -68,16 +78,15 @@ function createVisualization(data) {
       .attr("transform", `translate(0, ${height})`)
       .call(xAxis)
       .selectAll("text")
-      .attr("transform", "rotate(-45)")
-      .attr("text-anchor", "end")
-      .attr("dx", "-.8em")
-      .attr("dy", ".15em");
+      .attr("font-size", 12);
 
     // Create and display the Y-axis
     const yAxis = d3.axisLeft(yScale).ticks(6);
     svg.append("g")
       .attr("class", "y-axis")
-      .call(yAxis);
+      .call(yAxis)
+      .selectAll("text")
+      .attr("font-size", 12);
 
     // Create the bars for each year
     const bars = svg.selectAll(".bar")
@@ -90,7 +99,9 @@ function createVisualization(data) {
       .attr("width", xScale.bandwidth())
       .attr("height", d => height - yScale(d.avgAVG))
       .attr("fill", d => colorScale(d.year))
-      .on("click", (event, d) => triggerDrillDown(d.year));
+      .on("click", (event, d) => triggerDrillDown(d.year))
+      .on("mouseover", raiseBar)
+      .on("mouseout", resetBar);
 
     // Add AVG values at the top of the bars
     svg.selectAll(".bar-label")
@@ -124,6 +135,20 @@ function createVisualization(data) {
       .attr("y", -margin.left + 15)
       .attr("text-anchor", "middle")
       .text("Average AVG");
+
+    function raiseBar(event, d) {
+      d3.select(this)
+        .transition()
+        .duration(200)
+        .attr("y", d => yScale(d.avgAVG) - 10);
+    }
+    
+    function resetBar(event, d) {
+      d3.select(this)
+        .transition()
+        .duration(200)
+        .attr("y", d => yScale(d.avgAVG));
+    }
   }
 
   function showDrillDownScene(year) {
@@ -152,13 +177,17 @@ function createVisualization(data) {
     svg.append("g")
       .attr("class", "x-axis")
       .attr("transform", `translate(0, ${height})`)
-      .call(xAxis);
+      .call(xAxis)
+      .selectAll("text")
+      .attr("font-size", 12);
 
     // Create and display the Y-axis for Batting AVG
     const yAxis = d3.axisLeft(yScale).ticks(6);
     svg.append("g")
       .attr("class", "y-axis")
-      .call(yAxis);
+      .call(yAxis)
+      .selectAll("text")
+      .attr("font-size", 12);
 
     const pointGroup = svg.append("g")
       .attr("class", "point-group");
@@ -173,35 +202,71 @@ function createVisualization(data) {
       .attr("cy", d => yScale(d.batting_avg))
       .attr("r", 5)
       .attr("fill", d => colorScale(year))
-      .on("mouseover", showPlayerName)
-      .on("mouseout", hidePlayerName)
+      .on("mouseover", showPlayerInfoAndEnlargePoint)
+      .on("mouseout", hidePlayerInfoAndResetPoint)
       .on("click", (event, d) => triggerShowPlayer(d));
 
-    function showPlayerName(event, d) {
+    function showPlayerInfoAndEnlargePoint(event, d) {
       const xPosition = xScale(d.swing_percent) + 10;
       const yPosition = yScale(d.batting_avg) - 5;
 
-      svg.append("text")
-        .attr("class", "annotation-text")
-        .attr("x", xPosition)
-        .attr("y", yPosition)
+      // Enlarge the scatterplot point on mouseover
+      d3.select(this)
+        .transition()
+        .duration(200)
+        .attr("r", 8);
+    
+      const tooltipText = `${d.first_name} ${d.last_name}\nAVG: ${d.batting_avg}\nSwing %: ${d.swing_percent}\nStrikeouts: ${d.strikeout}\nStrikeout %: ${d.k_percent}\nWalks: ${d.walk}\nWalk %: ${d.bb_percent}\nSLG %: ${d.slg_percent}\nOBP: ${d.on_base_percent}`;
+      const lineHeight = 16;
+      const padding = 5;
+    
+      const bbox = svg.append("text")
+        .attr("class", "player-stats")
+        .attr("x", xPosition + padding)
+        .attr("y", yPosition + padding)
         .attr("dy", "0.35em")
-        .text(`${d.first_name} ${d.last_name}`);
+        .selectAll("tspan")
+        .data(tooltipText.split("\n"))
+        .enter()
+        .append("tspan")
+        .attr("x", xPosition + padding)
+        .attr("dy", (d, i) => i === 0 ? lineHeight : lineHeight)
+        .text(d => d)
+        .node()
+        .getBBox();
+    
+      svg.insert("rect", ".player-stats") // Insert rect behind text
+        .attr("class", "player-stats-background")
+        .attr("x", bbox.x - padding)
+        .attr("y", bbox.y - padding)
+        .attr("width", bbox.width + 2 * padding)
+        .attr("height", bbox.height + 2 * padding)
+        .attr("rx", 5)
+        .attr("ry", 5)
+        .attr("fill", "white");
     }
 
-    function hidePlayerName() {
-      svg.select(".annotation-text").remove();
+    function hidePlayerInfoAndResetPoint() {
+      svg.selectAll(".annotation-text").remove();
+      svg.selectAll(".player-stats").remove();
+      svg.selectAll(".player-stats-background").remove();
+      d3.select(this)
+        .transition()
+        .duration(200)
+        .attr("r", 5);
     }
 
-    // Add chart title
+    const titleY = -margin.top / 2;
+    const buttonY = titleY;
+
     svg.append("text")
       .attr("x", width / 2)
-      .attr("y", -margin.top / 2)
+      .attr("y", titleY)
       .attr("text-anchor", "middle")
       .attr("font-size", "20px")
       .text(`Batting Statistics for ${year}`);
 
-    // Add X and Y axis labels
+    // X and Y axis labels
     svg.append("text")
       .attr("x", width / 2)
       .attr("y", height + margin.bottom / 2)
@@ -218,22 +283,24 @@ function createVisualization(data) {
     // Add Back button to go back to the Overview scene
     const backButton = svg.append("g")
       .attr("class", "back-button")
-      .attr("transform", `translate(10, ${-margin.top / 2})`)
       .style("cursor", "pointer")
       .on("click", triggerBackToOverview);
-
+    
     backButton.append("rect")
-      .attr("width", 60)
-      .attr("height", 25)
+      .attr("width", 100)
+      .attr("height", 30)
       .attr("fill", "lightgray")
-      .attr("rx", 5);
-
+      .attr("rx", 8)
+      .attr("x", 10)
+      .attr("y", buttonY);
+    
     backButton.append("text")
-      .attr("x", 30)
-      .attr("y", 15)
+      .attr("x", 60)
+      .attr("y", buttonY + 15)
       .attr("text-anchor", "middle")
-      .attr("font-size", "12px")
-      .text("< Overview");
+      .attr("alignment-baseline", "middle")
+      .attr("font-size", "14px")
+      .text("< OVERVIEW");
 
     const maxHomeRunsPlayer = getMaxPlayer(yearPlayers, "home_run");
     const maxWalksPlayer = getMaxPlayer(yearPlayers, "walk");
@@ -355,19 +422,23 @@ function createVisualization(data) {
       .domain([0, Math.max(player.single, player.double, player.triple, player.home_run)])
       .range([height, 0]);
 
-    // Create and display axes
+    // Create axes
     const xAxis = d3.axisBottom(xScale);
     svg.append("g")
       .attr("class", "x-axis")
       .attr("transform", `translate(0, ${height})`)
-      .call(xAxis);
+      .call(xAxis)
+      .selectAll("text")
+      .attr("font-size", 12);
 
     const yAxis = d3.axisLeft(yScale).ticks(6);
     svg.append("g")
       .attr("class", "y-axis")
-      .call(yAxis);
+      .call(yAxis)
+      .selectAll("text")
+      .attr("font-size", 12);
 
-    // Create the bars for the hits distribution chart
+    // Hits distribution chart bars
     const bars = svg.selectAll(".bar")
       .data(hitsData)
       .enter()
@@ -390,47 +461,52 @@ function createVisualization(data) {
       .attr("text-anchor", "middle")
       .text(d => d.count);
 
+    const titleY = -margin.top / 2;
+    const buttonY = titleY;
+
     // Add title
     svg.append("text")
       .attr("x", width / 2)
-      .attr("y", -margin.top / 2)
+      .attr("y", titleY)
       .attr("text-anchor", "middle")
       .attr("font-size", "20px")
-      .text(`${player.first_name} ${player.last_name} Batting Statistics in ${player.year}`);
+      .text(`${player.first_name} ${player.last_name} Hit Distribution in ${player.year}`);
 
     // Add X and Y axis labels for hits distribution chart
     svg.append("text")
       .attr("x", width / 2)
       .attr("y", height + margin.bottom / 2)
       .attr("text-anchor", "middle")
-      .text("Hits Type");
+      .text("Type");
 
     svg.append("text")
       .attr("transform", "rotate(-90)")
       .attr("x", -height / 2)
       .attr("y", -margin.left + 15)
       .attr("text-anchor", "middle")
-      .text("Number of Hits");
+      .text("Hits");
 
     // Add Back button to go back to the drill-down scene
     const backButton = svg.append("g")
       .attr("class", "back-button")
-      .attr("transform", `translate(10, ${-margin.top / 2})`)
       .style("cursor", "pointer")
       .on("click", triggerBackToDrillDown);
 
     backButton.append("rect")
-      .attr("width", 60)
-      .attr("height", 25)
+      .attr("width", 100)
+      .attr("height", 30)
       .attr("fill", "lightgray")
-      .attr("rx", 5);
+      .attr("rx", 8)
+      .attr("x", 10)
+      .attr("y", buttonY);
 
     backButton.append("text")
-      .attr("x", 30)
-      .attr("y", 15)
+      .attr("x", 60)
+      .attr("y", buttonY + 15)
       .attr("text-anchor", "middle")
-      .attr("font-size", "12px")
-      .text("Back");
+      .attr("alignment-baseline", "middle")
+      .attr("font-size", "14px")
+      .text(`< BACK TO ${player.year}`);
   }
 
   function triggerDrillDown(year) {

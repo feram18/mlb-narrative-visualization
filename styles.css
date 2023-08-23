@@ -2,13 +2,48 @@
 
 body {
     font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: #f9f9f9;
+}
+
+.title-container {
+    text-align: center;
+    color: #999;
+    padding: 20px 0;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+    width: 100%;
+    top: 0;
+    box-sizing: border-box;
+}
+
+.title {
+    font-size: 48px;
+    font-weight: 700;
+    color: #333;
+}
+
+.subtitle {
+    font-size: 16px;
+    font-weight: 500;
+    color: #666;
+    margin-top: 5px;
+}
+
+.visualization {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #visualization {
-    width: max-content;
-    height: max-content;
+    width: 100vw;
+    height: 100%;
     padding: 20px;
     margin: 0 auto;
+    background-color: #f9f9f9;
 }
 
 .bar {
@@ -28,6 +63,11 @@ body {
     pointer-events: visiblePainted;
 }
 
+.bar,
+.point {
+    transition: fill 0.2s ease-in-out, r 0.2s ease-in-out;
+}
+
 .individual-bar-label {
     font-size: 12px;
     text-anchor: middle;
@@ -44,14 +84,26 @@ body {
     text-anchor: middle;
 }
 
+/* Customize Back button style */
 .back-button rect {
-    fill: #f0f0f0;
+    fill: #ccc;
+    rx: 8px;
+    width: 100px;
+    height: 30px;
 }
 
 .back-button text {
     font-size: 12px;
     fill: #333;
     pointer-events: none;
+    user-select: none;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+/* Adjust the x attribute of the text to center it within the button */
+.back-button text {
+    x: 50px;
 }
 
 .annotation-group {
@@ -71,14 +123,34 @@ body {
 
 .tooltip {
     position: absolute;
-    background-color: #f9f9f9;
+    background-color: rgba(255, 255, 255, 0.9);
+    /* Semi-transparent white background */
     padding: 8px;
     border: 1px solid #ccc;
     font-size: 12px;
     pointer-events: none;
     opacity: 0;
+    border-radius: 5px;
+    transition: opacity 0.2s ease-in-out;
 }
 
 .back-button:hover rect {
     fill: #ddd;
+}
+
+.footer {
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+    padding: 20px 0;
+    background-color: #f0f0f0;
+    border-top: 1px solid #ddd;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    box-sizing: border-box;
+}
+
+.footer a {
+    color: #999;
 }
